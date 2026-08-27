@@ -1,0 +1,15 @@
+{
+  "name": "aek-azure-function",
+  "version": "1.0.0",
+  "description": "Azure Function Proxy for SharePoint Microsoft Graph API",
+  "main": "src/functions/proxyHandler.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "@azure/identity": "^4.0.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "isomorphic-fetch": "^3.0.0"
+  }
+}
