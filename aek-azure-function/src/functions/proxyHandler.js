@@ -1,5 +1,8 @@
 const { app } = require("@azure/functions");
-const { findSharePointDocument, getDocumentStream } = require("../services/welcomeService");
+const {
+  findSharePointDocument,
+  getDocumentStream,
+} = require("../services/welcomeService");
 
 app.http("proxyHandler", {
   methods: ["GET"],
@@ -10,7 +13,9 @@ app.http("proxyHandler", {
     const campus = request.query.get("campus");
     const documentType = request.query.get("documentType");
 
-    context.log(`[PROXY] Request: action=${action}, campus=${campus}, documentType=${documentType}`);
+    context.log(
+      `[PROXY] Request: action=${action}, campus=${campus}, documentType=${documentType}`,
+    );
 
     try {
       const fileItem = await findSharePointDocument(campus, documentType);
@@ -20,8 +25,8 @@ app.http("proxyHandler", {
           status: 404,
           jsonBody: {
             available: false,
-            message: `No ${documentType} document found for ${campus} campus.`
-          }
+            message: `No ${documentType} document found for ${campus} campus.`,
+          },
         };
       }
 
@@ -34,8 +39,8 @@ app.http("proxyHandler", {
             campus: campus,
             documentType: documentType,
             fileName: fileItem.name,
-            fileSize: fileItem.size
-          }
+            fileSize: fileItem.size,
+          },
         };
       }
 
@@ -45,17 +50,19 @@ app.http("proxyHandler", {
         return {
           status: 200,
           headers: {
-            "Content-Type": "application/pdf"
+            "Content-Type": "application/pdf",
+            // "Access-Control-Allow-Origin": "*",
+            // "Access-Control-Allow-Methods": "GET, OPTIONS",
+            // "Access-Control-Allow-Headers": "Content-Type, Accept",
           },
-          body: stream
+          body: stream,
         };
       }
 
       return {
         status: 400,
-        jsonBody: { message: "Invalid action specified in route." }
+        jsonBody: { message: "Invalid action specified in route." },
       };
-
     } catch (error) {
       context.error("[PROXY SYSTEM ERROR]:", error);
       return {
@@ -63,9 +70,9 @@ app.http("proxyHandler", {
         jsonBody: {
           available: false,
           error: error.name || "Error",
-          message: error.message || "Internal Server Error"
-        }
+          message: error.message || "Internal Server Error",
+        },
       };
     }
-  }
+  },
 });
