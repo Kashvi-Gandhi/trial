@@ -2,6 +2,7 @@ const { app } = require("@azure/functions");
 const {
   findSharePointDocument,
   getDocumentStream,
+  getUserDetailsFromAIFS,
 } = require("../services/welcomeService");
 
 app.http("proxyHandler", {
@@ -9,15 +10,30 @@ app.http("proxyHandler", {
   authLevel: "anonymous",
   route: "welcome-pack/{action}",
   handler: async (request, context) => {
-    const action = request.params.action; // "info" or "content"
+    const action = request.params.action; // "info", "content", or "user-details"
     const campus = request.query.get("campus");
     const documentType = request.query.get("documentType");
+    const contactID = request.query.get("contactID") || "CGNYHA11PDO5";
 
     context.log(
-      `[PROXY] Request: action=${action}, campus=${campus}, documentType=${documentType}`,
+      `[PROXY] Request: action=${action}, campus=${campus}, documentType=${documentType}, contactID=${contactID}`,
     );
 
     try {
+      // 1. Endpoint for User Details (AIFS API)
+      if (action === "user-details") {
+        const userData = await getUserDetailsFromAIFS(contactID);
+        return {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          },
+          jsonBody: userData
+        };
+      }
+
+      // 2. SharePoint Document Actions
       const fileItem = await findSharePointDocument(campus, documentType);
 
       if (!fileItem) {
@@ -34,6 +50,9 @@ app.http("proxyHandler", {
       if (action === "info") {
         return {
           status: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*"
+          },
           jsonBody: {
             available: true,
             campus: campus,
@@ -51,9 +70,7 @@ app.http("proxyHandler", {
           status: 200,
           headers: {
             "Content-Type": "application/pdf",
-            // "Access-Control-Allow-Origin": "*",
-            // "Access-Control-Allow-Methods": "GET, OPTIONS",
-            // "Access-Control-Allow-Headers": "Content-Type, Accept",
+            "Access-Control-Allow-Origin": "*"
           },
           body: stream,
         };
@@ -67,6 +84,9 @@ app.http("proxyHandler", {
       context.error("[PROXY SYSTEM ERROR]:", error);
       return {
         status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*"
+        },
         jsonBody: {
           available: false,
           error: error.name || "Error",
