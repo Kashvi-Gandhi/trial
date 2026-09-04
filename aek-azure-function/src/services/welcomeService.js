@@ -90,7 +90,8 @@ async function getDocumentStream(itemId) {
  */
 async function getUserDetailsFromAIFS(contactId) {
   const apiKey = process.env.X_CAMPUS_M_API_KEY;
-  const url = `https://secure.aifsabroad.com/apistg/v1/CampusM/Contact/GetAllApplications?contactID=${encodeURIComponent(contactId)}`;
+  const baseUrl = process.env.AIFS_API_URL;
+  const url = `${baseUrl}?contactID=${encodeURIComponent(contactId)}`;
 
   const response = await fetch(url, {
     method: "GET",
@@ -112,5 +113,5 @@ async function getUserDetailsFromAIFS(contactId) {
 module.exports = {
   findSharePointDocument,
   getDocumentStream,
-  getUserDetailsFromAIFS // Exported here
+  getUserDetailsFromAIFS 
 };
